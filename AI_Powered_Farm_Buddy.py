@@ -215,4 +215,63 @@ elif st.session_state.current_page == "Kisan Assistant":
                     # Note: We leave the tts_audio_path alone so Streamlit can finish playing it
                     
                 except Exception as e:
+
                     st.error(f"An error occurred: {e}")
+
+# 7. PERSISTENT SECTION: Live Market Prices
+st.divider()
+
+st.header("🌾 Crop Market Price Live")
+st.write("Check the latest agricultural commodity prices in your local market.")
+
+# User Inputs for filtering data
+col1, col2 = st.columns(2)
+with col1:
+    selected_state = st.selectbox("Select State", ["Bihar", "Uttar Pradesh", "Punjab", "Haryana"])
+with col2:
+    # Dynamic district selection based on state
+    if selected_state == "Bihar":
+        districts = ["Patna", "Gaya", "Muzaffarpur", "Bhagalpur", "Purnia"]
+    else:
+        districts = ["District 1", "District 2"] 
+    selected_district = st.selectbox("Select District", districts)
+
+selected_crop = st.selectbox("Select Crop", ["Wheat", "Rice (Paddy)", "Maize", "Mustard", "Potato", "Onion"])
+
+# Mock API Function (Simulating data.gov.in)
+def fetch_mandi_prices(state, district, crop):
+    import random
+    import pandas as pd
+    from datetime import date
+    
+    base_prices = {
+        "Wheat": 2275, "Rice (Paddy)": 2183, "Maize": 2090, 
+        "Mustard": 5650, "Potato": 1200, "Onion": 1800
+    }
+    
+    base = base_prices.get(crop, 2000)
+    
+    data = {
+        "Market (Mandi)": [f"{district} Main Market", f"{district} APMC", f"{district} Rural"],
+        "Commodity": [crop, crop, crop],
+        "Variety": ["Common", "Grade A", "Common"],
+        "Min Price (₹/Quintal)": [base - random.randint(50, 150) for _ in range(3)],
+        "Max Price (₹/Quintal)": [base + random.randint(50, 200) for _ in range(3)],
+        "Arrival Date": [date.today().strftime("%d-%b-%Y")] * 3
+    }
+    return pd.DataFrame(data)
+
+# Display the Data
+if st.button("Get Latest Prices", key="get_prices_btn"):
+    with st.spinner("Fetching data from mandis..."):
+        df = fetch_mandi_prices(selected_state, selected_district, selected_crop)
+        
+        # Highlight the average Max price
+        avg_max_price = int(df["Max Price (₹/Quintal)"].mean())
+        st.metric(label=f"Average Max Price for {selected_crop} in {selected_district}", 
+                  value=f"₹ {avg_max_price} / Quintal", 
+                  delta="Updated Today", delta_color="normal")
+        
+        # Display the full table
+        st.dataframe(df, use_container_width=True, hide_index=True)
+        st.caption("Data source: Simulated Agmarknet Data (For Internship Demo Purposes)")
