@@ -18,7 +18,7 @@ else:
 
 # 2. Page Configuration
 st.set_page_config(
-    page_title="Krishi-Darpan AI",
+    page_title="Farm-Buddy AI",
     page_icon="🌱",
     layout="centered"
 )
@@ -57,7 +57,6 @@ st.markdown("""
         box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4) !important; /* Prominent shadow */
     }
             
-
     /* General Action Buttons (Ask Assistant, Analyze Image, etc.) */
     div.stButton > button {
         background-color: #48A111 !important; /* Natural Green */
@@ -77,7 +76,7 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # 4. Main Header & Intro
-st.title("🌾 Welcome To Krishi-Darpan AI")
+st.title("🌾 Welcome To Farm-Buddy AI")
 
 st.divider() 
 st.subheader("**Your AI-Powered Farming Companion**")
@@ -105,10 +104,10 @@ with col1:
 
 with col2:
     # Set to 'primary' if active, 'secondary' if inactive
-    ka_type = "primary" if st.session_state.current_page == "Kisan Assistant" else "secondary"
+    vg_type = "primary" if st.session_state.current_page == "Voice Guide" else "secondary"
     
-    if st.button("🎙️ Kisan Assistant", type=ka_type):
-        st.session_state.current_page = "Kisan Assistant"
+    if st.button("🎙️ Voice Guide", type=vg_type):
+        st.session_state.current_page = "Voice Guide"
         st.rerun()
     
 
@@ -163,9 +162,9 @@ if st.session_state.current_page == "Plant Doctor":
                 except Exception as e:
                     st.error(f"An error occurred: {e}")
 
-elif st.session_state.current_page == "Kisan Assistant":
-    st.subheader("🎙️ Voice Assistant")
-    st.write("Tap the microphone icon to ask your farming question.")
+elif st.session_state.current_page == "Voice Guide":
+    st.subheader("🎙️ Voice Guide")
+    st.write("Tap the microphone icon to ask your farming question. The AI will reply in your language!")
     
     # --- AUDIO RECORDING WIDGET ---
     audio_bytes = audio_recorder(text="Click to Record", recording_color="#e81c1c", neutral_color="#48A111")
@@ -183,39 +182,54 @@ elif st.session_state.current_page == "Kisan Assistant":
 
                     audio_file = genai.upload_file(path=temp_audio_path)
 
-                    # 2. Get Answer from Gemini
+                    # 2. Get Answer from Gemini with Dynamic Language Prompt
                     model = genai.GenerativeModel('gemini-2.5-flash')
                     prompt = """
-                    You are an expert agricultural assistant in Bihar. Listen to the farmer's question.
-                    Respond directly with practical, easy-to-understand advice.
-                    Keep the answer concise (under 3-4 sentences).
-                    You must reply in Hindi, written in Devanagari script, so it can be spoken out loud clearly.
+                    You are an expert agricultural assistant. Listen to the farmer's question.
+                    Respond directly with practical, easy-to-understand advice (under 3-4 sentences).
+                    
+                    CRITICAL INSTRUCTION:
+                    1. Detect the exact language the farmer is speaking.
+                    2. You MUST reply in that exact same language.
+                    3. You MUST format your final output strictly as: language_code|Your text response.
+                    
+                    Use standard 2-letter Google TTS language codes (e.g., 'hi' for Hindi/Bhojpuri, 'en' for English, 'bn' for Bengali, 'mr' for Marathi).
+                    
+                    Example Output:
+                    hi|गेहूं की फसल में यूरिया का प्रयोग करें।
                     """
                     
                     response = model.generate_content([prompt, audio_file])
                     
-                    st.success("Here is your answer:")
-                    st.write(response.text)
+                    # 3. Split the AI's response to get the code and the text
+                    try:
+                        # Splits the text into exactly two parts at the first '|'
+                        lang_code, actual_response = response.text.split('|', 1)
+                        lang_code = lang_code.strip().lower()
+                        actual_response = actual_response.strip()
+                    except ValueError:
+                        # Fallback just in case the AI forgets to add the '|'
+                        lang_code = 'hi' 
+                        actual_response = response.text
                     
-                    # --- NEW: TEXT-TO-SPEECH LOGIC ---
-                    with st.spinner("Generating voice response..."):
-                        # Convert the Hindi text to spoken audio
-                        tts = gTTS(text=response.text, lang='hi') 
+                    st.success("Here is your answer:")
+                    st.write(actual_response)
+                    
+                    # 4. TEXT-TO-SPEECH LOGIC (Now Dynamic!)
+                    with st.spinner(f"Generating voice response in '{lang_code}'..."):
+                        # Pass the dynamically detected language code to gTTS
+                        tts = gTTS(text=actual_response, lang=lang_code) 
                         
-                        # Save the spoken audio to a new temporary file
                         with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_tts:
                             tts.save(temp_tts.name)
                             tts_audio_path = temp_tts.name
                             
-                        # Play the audio back to the user automatically
                         st.audio(tts_audio_path, format="audio/mp3", autoplay=True)
 
-                    # Clean up temporary files
+                    # Clean up the audio file you uploaded to Gemini
                     os.remove(temp_audio_path)
-                    # Note: We leave the tts_audio_path alone so Streamlit can finish playing it
                     
                 except Exception as e:
-
                     st.error(f"An error occurred: {e}")
 
 # 7. PERSISTENT SECTION: Live Market Prices
