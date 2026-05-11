@@ -86,13 +86,15 @@ Voice Reply (Same Language)
 ## 📸 Project Screenshots
 
 ### Home Page
-_Add screenshots here_
+<img width="960" height="475" alt="{8752338D-6CD1-4B1E-9CEE-115F47CE792B}" src="https://github.com/user-attachments/assets/cf260ec9-48f3-4bf3-a937-97753a5565ac" />
+
 
 ### Plant Disease Detection
 _Add screenshots here_
 
 ### Live Market Dashboard
-_Add screenshots here_
+<img width="960" height="473" alt="{76D2100A-29F1-4F12-BC93-7EC274053BBD}" src="https://github.com/user-attachments/assets/9902c19e-c30f-4d4a-a3f9-9b1a4ee9f4ae" />
+
 
 ---
 
