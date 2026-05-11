@@ -90,7 +90,8 @@ Voice Reply (Same Language)
 
 
 ### Plant Disease Detection
-_Add screenshots here_
+<img width="956" height="473" alt="{87355A3A-A3BB-43FE-A4B6-271115DA9AEE}" src="https://github.com/user-attachments/assets/6f50a98a-1a1b-4987-87ec-5d116d263fc4" />
+
 
 ### Live Market Dashboard
 <img width="960" height="473" alt="{76D2100A-29F1-4F12-BC93-7EC274053BBD}" src="https://github.com/user-attachments/assets/9902c19e-c30f-4d4a-a3f9-9b1a4ee9f4ae" />
